@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ELL824 - Vega-Lite Assignment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+  
+  <!-- Vega Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .container {
+      margin-top: 2rem;
+    }
+    .chart-container {
+      padding: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Box around the grid of visualizations */
+    #chart-box {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Flexbox for responsive grid layout */
+    #chart-multiview {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);  /* 2 columns */
+      grid-template-rows: repeat(3, auto);   /* 3 rows, auto height */
+      grid-gap: 20px;                        /* Spacing between grid items */
+      grid-auto-rows: minmax(300px, auto);   /* Minimum row height */
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 100%; /* Ensure charts take up all available space */
+      min-height: 300px;  /* Ensure that each chart has a minimum height */
+    }
+
+    /* Add some space for the labels below each chart */
+    .chart-label {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    /* Responsive design for smaller screens */
+    @media (max-width: 768px) {
+      #chart-multiview {
+        grid-template-columns: 1fr;  /* Single column layout on small screens */
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1 class="mb-4 text-center">📊 ELL824 - Vega-Lite Visualization Assignment</h1>
+
+  <!-- Container with a box around the visualizations -->
+  <div id="chart-box">
+    <div id="chart-multiview">
+      <!-- Chart containers with labels for each visualization -->
+      <div class="chart-container">
+        <div id="chart1"></div>
+        <div class="chart-label">Donut Chart</div>
+      </div>
+      <div class="chart-container">
+        <div id="chart2"></div>
+        <div class="chart-label">Scatter Plot (Correlation)</div>
+      </div>
+      <div class="chart-container">
+        <div id="chart3"></div>
+        <div class="chart-label">Streamgraph</div>
+      </div>
+      <div class="chart-container">
+        <div id="chart4"></div>
+        <div class="chart-label">Bar Chart with Mean Line</div>
+      </div>
+      <div class="chart-container">
+        <div id="chart5"></div>
+        <div class="chart-label">Total Sum Bar Chart</div>
+      </div>
+      <div class="chart-container">
+        <div id="chart6"></div>
+        <div class="chart-label">Line Chart</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS (for accordion behavior) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  const dataUrl = "https://raw.githubusercontent.com/shailesh5-4/dv_assignment3/main/HW_III(csv).csv";
+
+  const multiviewSpec = {
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "concat": [
+      {
+        "width": 400,
+        "height": 300,
+        "mark": "arc", // Donut Chart (Arc)
+        "encoding": {
+          "theta": {"field": "TotalSum", "type": "quantitative"},
+          "color": {"field": "Rep", "type": "nominal"}
+        },
+        "transform": [
+          {"aggregate": [{"op": "sum", "field": "Total", "as": "TotalSum"}], "groupby": ["Rep"]}
+        ],
+        "data": {
+          "url": dataUrl
+        },
+        "config": {
+          "mark": {"innerRadius": 80} // Create the hole for the donut chart
+        }
+      },
+      
+      {
+        "width": 400,
+        "height": 300,
+        "mark": "point", // Scatter Plot for correlation between Units and Unit Cost
+        "encoding": {
+          "x": {"field": "Units", "type": "quantitative"},
+          "y": {"field": "Unit Cost", "type": "quantitative"},
+          "color": {"field": "Item", "type": "nominal"}
+        },
+        "selection": {
+          "brush": {
+            "type": "interval",
+            "encodings": ["x", "y"]
+          }
+        },
+        "data": {
+          "url": dataUrl
+        }
+      },
+      {
+        "width": 400,
+        "height": 300,
+        "mark": "area", // Area Chart
+        "encoding": {
+          "x": {"field": "OrderDate", "type": "temporal"},
+          "y": {"aggregate": "sum", "field": "Total", "type": "quantitative", "stack": "center"},
+          "color": {"field": "Item", "type": "nominal"}
+        },
+        "data": {
+          "url": dataUrl
+        }
+      },
+      {
+        "width": 400,
+        "height": 300,
+        "layer": [
+          {
+            "mark": "bar", // Bar Chart
+            "encoding": {
+              "x": {"bin": true, "field": "Units", "type": "quantitative"},
+              "y": {"aggregate": "count", "type": "quantitative"}
+            }
+          },
+          {
+            "transform": [{"aggregate": [{"op": "mean", "field": "Units", "as": "meanUnits"}]}],
+            "mark": "rule", // Mean Line on Bar Chart
+            "encoding": {
+              "x": {"field": "meanUnits", "type": "quantitative"},
+              "color": {"value": "red"},
+              "size": {"value": 2}
+            }
+          }
+        ],
+        "data": {
+          "url": dataUrl
+        }
+      },
+      {
+        "width": 400,
+        "height": 300,
+        "mark": "bar", // Bar Chart for Total Sum
+        "encoding": {
+          "x": {"field": "Item", "type": "nominal"},
+          "y": {"aggregate": "sum", "field": "Total", "type": "quantitative"},
+          "color": {"field": "Item", "type": "nominal"}
+        },
+        "data": {
+          "url": dataUrl
+        }
+      },
+      {
+        "width": 400,
+        "height": 300,
+        "mark": "line", // Line Chart
+        "encoding": {
+          "x": {"field": "OrderDate", "type": "temporal"},
+          "y": {"aggregate": "sum", "field": "Unit Cost", "type": "quantitative"},
+          "color": {"field": "Item", "type": "nominal"}
+        },
+        "data": {
+          "url": dataUrl
+        }
+      }
+    ]
+  };
+
+  // Rendering each chart in the grid
+  const chartSpecs = [
+    multiviewSpec.concat[0], // Donut Chart
+    multiviewSpec.concat[1], // Scatter Plot (Correlation)
+    multiviewSpec.concat[2], // Area Chart
+    multiviewSpec.concat[3], // Bar Chart with Mean Line
+    multiviewSpec.concat[4], // Bar Chart for Total
+    multiviewSpec.concat[5]  // Line Chart
+  ];
+
+  // Render each chart into its container
+  chartSpecs.forEach((spec, index) => {
+    vegaEmbed(`#chart${index + 1}`, { ...spec, width: 400, height: 300 }, { mode: "vega-lite" })
+      .then(result => {
+        console.log(result);
+      })
+      .catch(console.error);
+  });
+</script>
+
+</body>
+</html>
