@@ -143,12 +143,12 @@
           "y": {"field": "Unit Cost", "type": "quantitative"},
           "color": {"field": "Item", "type": "nominal"}
         },
-        "selection": {
-          "brush": {
-            "type": "interval",
-            "encodings": ["x", "y"]
-          }
-        },
+           "params": [{
+    "name": "brush",
+    "select": "interval",
+    "value": {"x": [55, 100], "y": [13, 37]}
+  }],
+       
         "data": {
           "url": dataUrl
         }
